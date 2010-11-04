@@ -2,62 +2,69 @@ from django.db import models
 import random
 
 
-class Applicant(User):"this class extends Django's built-in user model and is an abstract class"
-    preferences = []
-    lottery_number = models.IntegerField()
-    def set_preference(coop,rank):
-        "adds a preference to the preference list, replaces preference if it already exists"
-        remove_preference(coop)
-        preferences.insert(rank,coop)
-    
-    def remove_preference(coop):
-        if(preferences.in(coop)):
-            preferences.remove(coop)
-        
-    def get_rank(coop):
-        "returns the rank of the element in the preference list"
-        if(preferences.in(coop)):
-            return preferences.index(coop)
-        else:
-            return None
-    class Meta:
-        abstract = True;
-        
-class Members(Applicant):
-        "The object that represents a member of OSCA"
-    housing_coop = models.ForeignKey(Housing_Coop)"a many-to-one relationship of members to housing coops"
-    dining_coop = models.ForeignKey(Dining_Coop)"a many-to-one relationship of members to dining coops"
-    job = models.ForeignKey(staff.Job)
-    
-class Non_Members(Applicant):
-    
+class Semester(models.Model):
+		start_date = models.DateField()
+		end_date = models.DateField()
+		lottery_date = models.DateTimeField()
 
+class DiningMember(models.Model):
+		coop = models.ForeignKey(DiningInformation)
+		member = models.ForeignKey(User)
+		semester = models.ForeignKey(Semester)
+
+class HousingMember(models.Model):
+		coop = models.ForeignKey(DiningInformation)
+		member = models.ForeignKey(User)
+		semester = models.ForeignKey(Semester)
+		
+"option one for coop system"
 class Coop(models.Model):
     name = models.CharField(max_length=20)
     street_address = models.CharField(max_length=100)
-    size = models.IntegerField()
     description = models.TextField()
     picture = models.ImageField(upload_to=self.name/filename)
+
+
+class DiningCoop(models.Model):
+		coop = models.OneToOneField(Coop, related_name='dining')
+		members = models.ManyToManyField(User, through=DiningMember)
+		capacity = models.PositiveIntegerField()
+
+
+class HousingCoop(models.Model):
+		coop = models.OneToOneField(Coop, related_name='housing')
+		members = models.ManyToManyField(User, through=HousingMember)
+		capacity = models.PositiveIntegerField()
+
+
+"option two for coop system" 
+class Coop(models.Model):
+    name = models.CharField(max_length=20)
+    street_address = models.CharField(max_length=100)
+    capacity = models.PositiveIntegerField()
+    description = models.TextField()
+    picture = models.ImageField(upload_to=self.name/filename) 
     class Meta:
-        abstract = True;
+        abstract = True
 
 class Dining_Coop(Coop):
-
+		members = ManyToManyField(User, through=DiningMember)
+	
 class Housing_Coop(Coop):
-    
-" TODO: move to a new app entitled staff
-class Job(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField()    
-    jumps_housing = models.BooleanField()
-    jumps_dining = models.BooleanField()
-"       
+		members = ManyToManyField(User, through=HousingMember)
 
+class Application(models.Model):
+	waitlist = models.ForeignKey(Waitlist)
+	applicant = models.ForeignKey(User) 
+	
+class Preference(models.Model):
+		application = models.ForeignKey(Application)
+		coop = models.ForeignKey(Coop)
+		order = models.PositiveSmallIntegerField()
+			
 class Waitlist(models.Model):
-    loterry_date = models.DateField()
-    valid_until = models.DateField()
-    applicants = ManyToManyField(Applicants)
-    
+    semester = models.OneToOneField(Semester)
+    applicants = ManyToManyField(User, through=Application)
     def populate():
         numbers = range(self.applicants_set.len+1)
         numbers.remove(0)
