@@ -3,19 +3,21 @@ import random
 
 
 class Semester(models.Model):
-		start_date = models.DateField()
-		end_date = models.DateField()
-		lottery_date = models.DateTimeField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_current = models.BooleanField()
+    lottery_date = models.DateTimeField()
 
 class DiningMember(models.Model):
-		coop = models.ForeignKey(DiningInformation)
-		member = models.ForeignKey(User)
-		semester = models.ForeignKey(Semester)
+    coop = models.ForeignKey(DiningCoop)
+    user = models.ForeignKey(User)
+    semester = models.ForeignKey(Semester)
 
 class HousingMember(models.Model):
-		coop = models.ForeignKey(DiningInformation)
-		member = models.ForeignKey(User)
-		semester = models.ForeignKey(Semester)
+    coop = models.ForeignKey(HousingCoop)
+    user = models.ForeignKey(User)
+    semester = models.ForeignKey(Semester)
+    positions = models.ManyToManyField(Jobs.Position)
 		
 "option one for coop system"
 class Coop(models.Model):
@@ -26,15 +28,15 @@ class Coop(models.Model):
 
 
 class DiningCoop(models.Model):
-		coop = models.OneToOneField(Coop, related_name='dining')
-		members = models.ManyToManyField(User, through=DiningMember)
-		capacity = models.PositiveIntegerField()
+    coop = models.OneToOneField(Coop, related_name='dining')
+    members = models.ManyToManyField(User, through=DiningMember)
+    capacity = models.PositiveIntegerField()
 
 
 class HousingCoop(models.Model):
-		coop = models.OneToOneField(Coop, related_name='housing')
-		members = models.ManyToManyField(User, through=HousingMember)
-		capacity = models.PositiveIntegerField()
+    coop = models.OneToOneField(Coop, related_name='housing')
+    members = models.ManyToManyField(User, through=HousingMember)
+    capacity = models.PositiveIntegerField()
 
 
 "option two for coop system" 
@@ -48,19 +50,19 @@ class Coop(models.Model):
         abstract = True
 
 class Dining_Coop(Coop):
-		members = ManyToManyField(User, through=DiningMember)
+    members = ManyToManyField(User, through=DiningMember)
 	
 class Housing_Coop(Coop):
-		members = ManyToManyField(User, through=HousingMember)
+    members = ManyToManyField(User, through=HousingMember)
 
 class Application(models.Model):
-	waitlist = models.ForeignKey(Waitlist)
-	applicant = models.ForeignKey(User) 
-	
+    waitlist = models.ForeignKey(Waitlist)
+    applicant = models.ForeignKey(User)
+    
 class Preference(models.Model):
-		application = models.ForeignKey(Application)
-		coop = models.ForeignKey(Coop)
-		order = models.PositiveSmallIntegerField()
+    application = models.ForeignKey(Application)
+    coop = models.ForeignKey(Coop)
+    order = models.PositiveSmallIntegerField()
 			
 class Waitlist(models.Model):
     semester = models.OneToOneField(Semester)
